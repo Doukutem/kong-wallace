@@ -38,8 +38,21 @@ class obj_Actor:
         #multiply sprite size by cell size and draw
         SURFACE_MAIN.blit(self.sprite, (self.x*constants.CELL_WIDTH, self.y*constants.CELL_HEIGHT))
     def move(self, dx, dy):
+        tile_is_wall = (GAME_MAP[self.x + dx][self.y + dy].block_path == True)
+        target = None
+        #if object exists at position and is not itself, then make it a target
+        for object in GAME_OBJECTS:
+            if (object is not self and 
+                object.x == self.x + dx and 
+                object.y == self.y + dy and 
+                object.creature):
+                target = object
+                break
+            
+        if target:
+            print (self.creature.name_instance + " attacks " + target.creature.name_instance)
         #take in a difference of x and y relative to the actor, consult map to see if it is blocked
-        if GAME_MAP[self.x + dx][self.y + dy].block_path == False:
+        if not tile_is_wall:
             #if it isn't blocked, then move by adding dx,dy to actor position
             self.x += dx
             self.y += dy
@@ -58,12 +71,13 @@ class com_Creature:
 class ai_Test:
     '''Once per turn, execute ai instructions.'''
     def take_turn(self):
-        #ai test. every round the object moves to the left
-        self.owner.move(-1,0)
+        #ai test. every round the object chooses a random direction to move to, or stay still
+        self.owner.move(tcod.random_get_int(0, -1, 1), tcod.random_get_int(0, -1, 1))
 
 # class com_Item:
 
 # class com_Container:
+
 
 '''Map'''
 def map_create():
@@ -73,6 +87,16 @@ def map_create():
     new_map[10][10].block_path = True
     # new_map tile at (x=10, y=15) is going to be a wall 
     new_map[10][15].block_path = True
+
+    #block top [x][0] and bottom [x][constants.MAP_HEIGHT-1] borders off
+    for x in range(constants.MAP_WIDTH):
+        new_map[x][0].block_path = True
+        new_map[x][constants.MAP_HEIGHT-1].block_path = True
+
+    #block left [0][y] and right [constants.MAP_WIDTH-1][y] borders off
+    for y in range(constants.MAP_HEIGHT):
+        new_map[0][y].block_path = True
+        new_map[constants.MAP_WIDTH-1][y].block_path = True
     return new_map
 
 
@@ -133,11 +157,12 @@ def game_initialize():
     #initialize pygame
     pygame.init()
     #(x,y) tuple represents window dimensions
-    SURFACE_MAIN = pygame.display.set_mode((constants.GAME_WIDTH, constants.GAME_HEIGHT))
+    SURFACE_MAIN = pygame.display.set_mode((constants.CELL_WIDTH*constants.MAP_WIDTH, 
+                                            constants.CELL_HEIGHT*constants.MAP_HEIGHT))
 
     GAME_MAP = map_create()
     creature_com1 = com_Creature("greg")
-    PLAYER = obj_Actor(0, 0, "python", constants.S_PLAYER, creature = creature_com1)
+    PLAYER = obj_Actor(1, 1, "python", constants.S_PLAYER, creature = creature_com1)
 
     creature_com2 = com_Creature("jackie")
     ai_com = ai_Test()
@@ -172,6 +197,7 @@ def game_handle_keys():
                 PLAYER.move(1, 0)
                 return "player-moved"
     return "no-action"
+
 
 '''Main method'''
 if __name__ == '__main__':
