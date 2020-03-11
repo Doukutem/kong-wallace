@@ -21,14 +21,19 @@ class struct_Tile:
 '''Objects'''
 class obj_Actor:
     #i.e.(self, position x, position y, "human", "human.png", component defaults...)
-    def __init__(self, x, y, name_object, sprite, creature = None):
+    def __init__(self, x, y, name_object, sprite, creature = None, ai = None):
         self.x = x #map address
         self.y = y #map address
         self.sprite = sprite
 
+        self.creature = creature
         if creature:
-            self.creature = creature
             creature.owner = self
+
+        self.ai = ai
+        if ai:
+            ai.owner = self
+
     def draw(self):
         #multiply sprite size by cell size and draw
         SURFACE_MAIN.blit(self.sprite, (self.x*constants.CELL_WIDTH, self.y*constants.CELL_HEIGHT))
@@ -50,6 +55,11 @@ class com_Creature:
         self.name_instance = name_instance
         self.hp = hp
 
+class ai_Test:
+    '''Once per turn, execute ai instructions.'''
+    def take_turn(self):
+        #ai test. every round the object moves to the left
+        self.owner.move(-1,0)
 
 # class com_Item:
 
@@ -75,12 +85,10 @@ def draw_game():
 
     #draw the map
     draw_map(GAME_MAP)
-    #draw the character
-    ENEMY.draw()
-    PLAYER.draw()
+    #draw all objects
+    for obj in GAME_OBJECTS:
+        obj.draw()
     
-
-
     #update the display with flip
     pygame.display.flip()
 
@@ -96,43 +104,32 @@ def draw_map(map_to_draw):
 
 
 '''Game Loop'''
-
 def game_main_loop():
     '''In this function, we loop the main game'''
     game_quit = False
+    player_action = "no-action"
     while not game_quit:
-        #1. get player input
 
-        #this collects all the events that have occurred recently
-        events_list = pygame.event.get()
+        #handle keys
+        player_action = game_handle_keys()
+
+        if player_action == "QUIT":
+            game_quit = True
         
-        #2. process input
-        for event in events_list:
-            if event.type == pygame.QUIT:
-                game_quit = True
-
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_UP:
-                    PLAYER.move(0, -1)
-                if event.key == pygame.K_DOWN:
-                    PLAYER.move(0, 1)
-                if event.key == pygame.K_LEFT:
-                    PLAYER.move(-1, 0)
-                if event.key == pygame.K_RIGHT:
-                    PLAYER.move(1, 0)
-        
-
-
-        #3. draw the game
+        elif player_action != "no-action":
+            for obj in GAME_OBJECTS:
+                if obj.ai:
+                    obj.ai.take_turn()
+        #draw the game
         draw_game()
 
     #quit the game, cleanup
     pygame.quit()
-    sys.exit
+    exit()
 
 def game_initialize():
     '''This function initializes the main window, and pygame'''
-    global SURFACE_MAIN, GAME_MAP, PLAYER, ENEMY
+    global SURFACE_MAIN, GAME_MAP, PLAYER, ENEMY, GAME_OBJECTS
     #initialize pygame
     pygame.init()
     #(x,y) tuple represents window dimensions
@@ -143,7 +140,38 @@ def game_initialize():
     PLAYER = obj_Actor(0, 0, "python", constants.S_PLAYER, creature = creature_com1)
 
     creature_com2 = com_Creature("jackie")
-    ENEMY = obj_Actor(15, 15, "crab", constants.S_ENEMY, creature = creature_com2)
+    ai_com = ai_Test()
+    ENEMY = obj_Actor(15, 15, "crab", constants.S_ENEMY, creature = creature_com2, ai = ai_com)
+
+    GAME_OBJECTS = [PLAYER, ENEMY]
+
+def game_handle_keys():
+    #1. get player input
+
+    #this collects all the events that have occurred recently
+    events_list = pygame.event.get()   
+    #2. process input
+    for event in events_list:
+        if event.type == pygame.QUIT:
+            return "QUIT"
+
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_UP:
+                PLAYER.move(0, -1)
+                return "player-moved"
+
+            if event.key == pygame.K_DOWN:
+                PLAYER.move(0, 1)
+                return "player-moved"
+
+            if event.key == pygame.K_LEFT:
+                PLAYER.move(-1, 0)
+                return "player-moved"
+
+            if event.key == pygame.K_RIGHT:
+                PLAYER.move(1, 0)
+                return "player-moved"
+    return "no-action"
 
 '''Main method'''
 if __name__ == '__main__':
