@@ -6,7 +6,7 @@ import pygame
 import tcod
 
 #game files
-import constants
+import constants as con
 
 #Tip: break things up into lots of functions!
 #Pseudoprogramming is helpful for organizing thoughts.
@@ -36,7 +36,7 @@ class obj_Actor:
 
     def draw(self):
         #multiply sprite size by cell size and draw
-        SURFACE_MAIN.blit(self.sprite, (self.x*constants.CELL_WIDTH, self.y*constants.CELL_HEIGHT))
+        SURFACE_MAIN.blit(self.sprite, (self.x*con.CELL_WIDTH, self.y*con.CELL_HEIGHT))
     def move(self, dx, dy):
         tile_is_wall = (GAME_MAP[self.x + dx][self.y + dy].block_path == True)
         target = None
@@ -81,22 +81,22 @@ class ai_Test:
 
 '''Map'''
 def map_create():
-    # Nested list comprehension (creates an array of struct_tile constants.MAP_WIDTH wide by constants.MAP_HEIGHT tall)
-    new_map = [[struct_Tile(False) for y in range(0, constants.MAP_HEIGHT)] for x in range(0, constants.MAP_WIDTH)]
+    # Nested list comprehension (creates an array of struct_tile con.MAP_WIDTH wide by con.MAP_HEIGHT tall)
+    new_map = [[struct_Tile(False) for y in range(0, con.MAP_HEIGHT)] for x in range(0, con.MAP_WIDTH)]
     # new_map tile at (x=10, y=10) is going to be a wall 
     new_map[10][10].block_path = True
     # new_map tile at (x=10, y=15) is going to be a wall 
     new_map[10][15].block_path = True
 
-    #block top [x][0] and bottom [x][constants.MAP_HEIGHT-1] borders off
-    for x in range(constants.MAP_WIDTH):
+    #block top [x][0] and bottom [x][con.MAP_HEIGHT-1] borders off
+    for x in range(con.MAP_WIDTH):
         new_map[x][0].block_path = True
-        new_map[x][constants.MAP_HEIGHT-1].block_path = True
+        new_map[x][con.MAP_HEIGHT-1].block_path = True
 
-    #block left [0][y] and right [constants.MAP_WIDTH-1][y] borders off
-    for y in range(constants.MAP_HEIGHT):
+    #block left [0][y] and right [con.MAP_WIDTH-1][y] borders off
+    for y in range(con.MAP_HEIGHT):
         new_map[0][y].block_path = True
-        new_map[constants.MAP_WIDTH-1][y].block_path = True
+        new_map[con.MAP_WIDTH-1][y].block_path = True
     return new_map
 
 
@@ -105,7 +105,7 @@ def draw_game():
     '''This function contains all screen draws.'''
     global SURFACE_MAIN
     #clear the surface
-    SURFACE_MAIN.fill(constants.COLOR_DEFAULT_BG)
+    SURFACE_MAIN.fill(con.COLOR_DEFAULT_BG)
 
     #draw the map
     draw_map(GAME_MAP)
@@ -117,14 +117,14 @@ def draw_game():
     pygame.display.flip()
 
 def draw_map(map_to_draw):
-    for x in range(0, constants.MAP_WIDTH):
-        for y in range(0, constants.MAP_HEIGHT):
+    for x in range(0, con.MAP_WIDTH):
+        for y in range(0, con.MAP_HEIGHT):
             if map_to_draw[x][y].block_path:
                 #draw wall surfaces onto main surface, positions marked by map coordinates
-                SURFACE_MAIN.blit(constants.S_WALL, (x * constants.CELL_WIDTH, y * constants.CELL_HEIGHT))
+                SURFACE_MAIN.blit(con.S_WALL, (x * con.CELL_WIDTH, y * con.CELL_HEIGHT))
             else:
                 #draw floor surfaces everywhere else
-                SURFACE_MAIN.blit(constants.S_FLOOR, (x * constants.CELL_WIDTH, y * constants.CELL_HEIGHT))
+                SURFACE_MAIN.blit(con.S_FLOOR, (x * con.CELL_WIDTH, y * con.CELL_HEIGHT))
 
 
 '''Game Loop'''
@@ -157,16 +157,16 @@ def game_initialize():
     #initialize pygame
     pygame.init()
     #(x,y) tuple represents window dimensions
-    SURFACE_MAIN = pygame.display.set_mode((constants.CELL_WIDTH*constants.MAP_WIDTH, 
-                                            constants.CELL_HEIGHT*constants.MAP_HEIGHT))
+    SURFACE_MAIN = pygame.display.set_mode((con.CELL_WIDTH*con.MAP_WIDTH, 
+                                            con.CELL_HEIGHT*con.MAP_HEIGHT))
 
     GAME_MAP = map_create()
     creature_com1 = com_Creature("greg")
-    PLAYER = obj_Actor(1, 1, "python", constants.S_PLAYER, creature = creature_com1)
+    PLAYER = obj_Actor(1, 1, "python", con.S_PLAYER, creature = creature_com1)
 
     creature_com2 = com_Creature("jackie")
     ai_com = ai_Test()
-    ENEMY = obj_Actor(15, 15, "crab", constants.S_ENEMY, creature = creature_com2, ai = ai_com)
+    ENEMY = obj_Actor(15, 15, "crab", con.S_ENEMY, creature = creature_com2, ai = ai_com)
 
     GAME_OBJECTS = [PLAYER, ENEMY]
 

@@ -1,4 +1,5 @@
 import pygame
+
 """
 A set of constants for the python roguelike tutorial game.
 """
@@ -27,4 +28,3 @@ S_ENEMY = pygame.image.load("sprites/crab.png")
 S_WALL = pygame.image.load("sprites/wall.png")
 S_FLOOR = pygame.image.load("sprites/floor.png")
 #Map
-
