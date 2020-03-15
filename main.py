@@ -37,27 +37,7 @@ class obj_Actor:
     def draw(self):
         #multiply sprite size by cell size and draw
         SURFACE_MAIN.blit(self.sprite, (self.x*con.CELL_WIDTH, self.y*con.CELL_HEIGHT))
-    def move(self, dx, dy):
-        tile_is_wall = (GAME_MAP[self.x + dx][self.y + dy].block_path == True)
-        target = None
-        #if object exists at position and is not itself, then make it a target
-        for object in GAME_OBJECTS:
-            if (object is not self and 
-                object.x == self.x + dx and 
-                object.y == self.y + dy and 
-                object.creature):
-                target = object
-                break
-            
-        if target:
-            print(self.creature.name_instance + " attacks " + target.creature.name_instance + " for 5 damage!")
-            target.creature.take_damage(5)
-
-        #take in a difference of x and y relative to the actor, consult map to see if it is blocked
-        if not tile_is_wall:
-            #if it isn't blocked, then move by adding dx,dy to actor position
-            self.x += dx
-            self.y += dy
+    
 
 
 '''Components'''
@@ -74,15 +54,34 @@ class com_Creature:
 
     def take_damage(self, damage):
         self.hp -= damage
-        print(self.name_instance + " 's health is " + str(self.hp) + "/" + str(self.maxhp))
+        print(self.name_instance + "'s health is " + str(self.hp) + "/" + str(self.maxhp))
         if self.hp <= 0:
             if self.death_function is not None:
                 self.death_function(self.owner)
+    def move(self, dx, dy):
+        tile_is_wall = (GAME_MAP[self.owner.x + dx][self.owner.y + dy].block_path == True)
+        target = map_check_for_creature(self.owner.x + dx, self.owner.y + dy, self.owner)
+        #if object exists at position and is not itself, then make it a target
+        
+            
+        if target:
+            self.attack(target, 3)
+
+        #take in a difference of x and y relative to the actor, consult map to see if it is blocked
+        if not tile_is_wall:
+            #if it isn't blocked, then move by adding dx,dy to actor position
+            self.owner.x += dx
+            self.owner.y += dy
+    def attack(self, target, damage):
+        
+        print(self.name_instance + " attacks " + target.creature.name_instance + " for " + str(damage) + " damage!")
+        
+        target.creature.take_damage(damage)
 class ai_Test:
     '''Once per turn, execute ai instructions.'''
     def take_turn(self):
         #ai test. every round the object chooses a random direction to move to, or stay still
-        self.owner.move(tcod.random_get_int(0, -1, 1), tcod.random_get_int(0, -1, 1))
+        self.owner.creature.move(tcod.random_get_int(0, -1, 1), tcod.random_get_int(0, -1, 1))
 
 def death_monster(monster):
     '''On death, most monsters stop moving.'''
@@ -116,6 +115,33 @@ def map_create():
         new_map[0][y].block_path = True
         new_map[con.MAP_WIDTH-1][y].block_path = True
     return new_map
+
+def map_check_for_creature(x, y, exclude_object = None):
+    target = None
+    
+    if exclude_object:
+        #check objectlist to find creature at that location that isn't excluded
+        for object in GAME_OBJECTS:
+            if (object is not exclude_object and
+                object.x == x and
+                object.y == y and
+                object.creature):
+
+                target = object
+
+            if target:
+                return target
+    else:
+        #check objectlist to find any creature at that location
+        for object in GAME_OBJECTS:
+            if (object.x == x and
+                object.y == y and
+                object.creature):
+
+                target = object
+
+            if target:
+                return target
 
 
 '''Drawing'''
@@ -200,19 +226,19 @@ def game_handle_keys():
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_UP:
-                PLAYER.move(0, -1)
+                PLAYER.creature.move(0, -1)
                 return "player-moved"
 
             if event.key == pygame.K_DOWN:
-                PLAYER.move(0, 1)
+                PLAYER.creature.move(0, 1)
                 return "player-moved"
 
             if event.key == pygame.K_LEFT:
-                PLAYER.move(-1, 0)
+                PLAYER.creature.move(-1, 0)
                 return "player-moved"
 
             if event.key == pygame.K_RIGHT:
-                PLAYER.move(1, 0)
+                PLAYER.creature.move(1, 0)
                 return "player-moved"
     return "no-action"
 

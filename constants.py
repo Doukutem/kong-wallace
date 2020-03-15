@@ -25,6 +25,6 @@ COLOR_DEFAULT_BG = COLOR_GREY
 #SPRITES
 S_PLAYER = pygame.image.load("sprites/player.png")
 S_ENEMY = pygame.image.load("sprites/crab.png")
-S_WALL = pygame.image.load("sprites/wall.png")
+S_WALL = pygame.image.load("sprites/wall.jpg")
 S_FLOOR = pygame.image.load("sprites/floor.png")
 #Map
